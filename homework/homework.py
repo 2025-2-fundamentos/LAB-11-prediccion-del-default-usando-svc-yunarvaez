@@ -128,13 +128,12 @@ Realice la limpieza de los datasets:
 """
 
 
-def clean_datasets():
-    df = pd.read_csv("files/input/train_data.csv.zip", compression='zip')
+def clean_datasets(data_path):
+    df = pd.read_csv(data_path, compression='zip')
     df.rename(columns={"default payment next month": "default"}, inplace=True)
     df.drop(columns=["ID"], inplace=True)
-    df["EDUCATION"] = df["EDUCATION"].replace(0, np.nan)
-    df["MARRIAGE"] = df["MARRIAGE"].replace(0, np.nan)
-    df.loc[df["EDUCATION"] > 4, "EDUCATION"] = 4
+    df = df[(df['EDUCATION'] != 0) & (df['MARRIAGE'] != 0)]
+    df['EDUCATION'] = df['EDUCATION'].apply(lambda x: x if x <= 4 else 4)
     df = df.dropna()
     return df
 
@@ -277,9 +276,10 @@ def calculate_confusion_matrix(y_true, y_pred, dataset_type):
         }
     }
 
-
-test_data_pd = clean_datasets()
-train_data_pd = clean_datasets()
+test_path = "files/input/test_data.csv.zip"
+train_path = "files/input/train_data.csv.zip"
+test_data_pd = clean_datasets(test_path)
+train_data_pd = clean_datasets(train_path)
 x_train, y_train = split_datasets(train_data_pd)
 x_test, y_test = split_datasets(test_data_pd)
 pipeline = create_pipeline(x_train)
